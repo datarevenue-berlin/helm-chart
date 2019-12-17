@@ -1,6 +1,22 @@
 ---
 # nameOverride: dask
 # fullnameOverride: dask
+comm:
+  tls: false
+  # To use tls please provision tls secrets for scheduler,
+  # worker and client before installing this chart. Can be created with kubectl:
+  # kubectl create secret tls dask-[component]-tls --cert [component]-cert.pem --key [component]-key.pem
+  scheduler:
+    secretName: dask-scheduler-tls
+  worker:
+    secretName: dask-worker-tls
+  client:
+    secretName: dask-client-tls
+  # The CA must be passed as secret with a key named ca.pem
+  # It can be created like this
+  # kubectl create secret generic dask-ca --from-file ca.pem
+  ca:
+    secretName: dask-ca
 
 scheduler:
   name: scheduler

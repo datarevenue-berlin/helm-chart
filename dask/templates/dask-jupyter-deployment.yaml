@@ -43,9 +43,25 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /home/jovyan/.jupyter
+          {{- if .Values.comm.tls }}
+            - name: {{ template "dask.fullname" . }}-client-tls-volume
+              mountPath: /etc/dask/client/tls/
+              readOnly: true
+            - name: {{ template "dask.fullname" . }}-client-ca-volume
+              mountPath: /etc/dask/ca/
+              readOnly: true
+          {{- end }}
           env:
             - name: DASK_SCHEDULER_ADDRESS
-              value: {{ template "dask.fullname" . }}-scheduler:{{ .Values.scheduler.servicePort }}
+              value: {{ template "comm.protocol" . }}://{{ template "dask.fullname" . }}-scheduler:{{ .Values.scheduler.servicePort }}
+          {{- if .Values.comm.tls }}
+            - name: DASK_DISTRIBUTED__COMM__TLS__CLIENT__KEY
+              value: /etc/dask/client/tls/tls.key
+            - name: DASK_DISTRIBUTED__COMM__TLS__CLIENT__CERT
+              value: /etc/dask/client/tls/tls.crt
+            - name: DASK_DISTRIBUTED__COMM__TLS__CA_FILE
+              value: /etc/dask/ca/ca.pem
+          {{- end }}
           {{- if .Values.jupyter.env }}
             {{- toYaml .Values.jupyter.env | nindent 12 }}
           {{- end }}
@@ -55,6 +71,14 @@ spec:
         - name: config-volume
           configMap:
             name: {{ template "dask.fullname" . }}-jupyter-config
+      {{- if .Values.comm.tls }}
+        - name: {{ template "dask.fullname" . }}-client-tls-volume
+          secret:
+            secretName: {{ .Values.comm.client.secretName }}
+        - name: {{ template "dask.fullname" . }}-client-ca-volume
+          secret:
+            secretName: {{ .Values.comm.ca.secretName }}
+      {{- end }}
     {{- with .Values.jupyter.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
