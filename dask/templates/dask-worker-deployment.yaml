@@ -48,6 +48,10 @@ spec:
             - --tls-key
             - /etc/dask/worker/tls/tls.key
           {{- end }}
+          {{- if .Values.worker.port }}
+            - --worker-port
+            - {{ .Values.worker.port | quote }}
+          {{- end }}
           ports:
             - containerPort: 8789
           resources:
