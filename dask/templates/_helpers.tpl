@@ -30,3 +30,11 @@ Create chart name and version as used by the chart label.
 {{- define "dask.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{- define "comm.protocol" -}}
+{{- if .Values.comm.tls -}}
+{{- print "tls" -}}
+{{- else -}}
+{{- print "tcp" -}}
+{{- end -}}
+{{- end -}}

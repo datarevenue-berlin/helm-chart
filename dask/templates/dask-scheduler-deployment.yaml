@@ -36,6 +36,14 @@ spec:
             - "{{ .Values.scheduler.servicePort }}"
             - --bokeh-port
             - "8787"
+          {{- if .Values.comm.tls}}
+            - --tls-ca-file
+            - /etc/dask/ca/ca.pem
+            - --tls-cert
+            - /etc/dask/scheduler/tls/tls.crt
+            - --tls-key
+            - /etc/dask/scheduler/tls/tls.key
+          {{- end }}
           ports:
             - containerPort: 8786
             - containerPort: 8787
@@ -43,6 +51,15 @@ spec:
             {{- toYaml .Values.scheduler.resources | nindent 12 }}
           env:
             {{- toYaml .Values.scheduler.env | nindent 12 }}
+      {{- if .Values.comm.tls}}
+          volumeMounts:
+            - name: {{ template "dask.fullname" . }}-scheduler-ca-volume
+              mountPath: /etc/dask/ca
+              readOnly: true
+            - name: {{ template "dask.fullname" . }}-scheduler-tls-volume
+              mountPath: /etc/dask/scheduler/tls
+              readOnly: true
+      {{- end }}
     {{- with .Values.scheduler.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -54,4 +71,13 @@ spec:
     {{- with .Values.scheduler.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- if .Values.comm.tls }}
+      volumes:
+        - name: {{ template "dask.fullname" . }}-scheduler-tls-volume
+          secret:
+            secretName: {{ .Values.comm.scheduler.secretName}}
+        - name: {{ template "dask.fullname" . }}-scheduler-ca-volume
+          secret:
+            secretName: {{ .Values.comm.ca.secretName}}
     {{- end }}
