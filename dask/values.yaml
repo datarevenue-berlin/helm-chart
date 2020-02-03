@@ -94,6 +94,7 @@ worker:
     minReplicas: 3
     maxReplicas: 100
     targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
 
 jupyter:
   name: jupyter
